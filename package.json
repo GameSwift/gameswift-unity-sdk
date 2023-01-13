@@ -1,0 +1,16 @@
+{
+    "name": "com.gameswift.sdk",
+    "version": "1.0.0",
+    "displayName": "GameSwiftSDK",
+    "description": "Unity package making it easy to connect with GameSwift ecosystem via GameSwift ID.",
+	"documentationUrl": "https://docs.gameswift.io/gameswift-products/sdk",
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+    },
+    "keywords": ["sdk", "GameSwiftSDK", "request"],
+    "author": {
+        "name": "GameSwift",
+        "email": "peter@gameswift.io",
+        "url": "https://docs.gameswift.io/"
+    }
+}

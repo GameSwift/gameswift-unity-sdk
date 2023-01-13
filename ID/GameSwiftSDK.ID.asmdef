@@ -1,0 +1,16 @@
+{
+    "name": "ID",
+    "rootNamespace": "GameSwiftSDK",
+    "references": [
+        "GUID:a7271a9a4bb20a84d9ae84a7dbfcc3ac"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
