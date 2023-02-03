@@ -19,11 +19,10 @@ namespace GameSwiftSDK.Id
 		public static void RefreshTokenFromLauncher (
 			Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
 		{
-			var isCodeAvailable = GameSwiftSdkCore.TryReadCmdArgument("-authorization_code", out var authorizationCode);
 			var isClientIdAvailable = GameSwiftSdkCore.TryReadCmdArgument("-client_id", out var clientId);
 			var isRedirectUriAvailable = GameSwiftSdkCore.TryReadCmdArgument("-redirect_uri", out var redirectUri);
 
-			if (isCodeAvailable && isClientIdAvailable && isRedirectUriAvailable)
+			if (isClientIdAvailable && isRedirectUriAvailable)
 			{
 				RefreshOauthToken(clientId, redirectUri, Instance._refreshToken,
 				                  HandleTokenRetrieved, handleFailure);
@@ -31,14 +30,13 @@ namespace GameSwiftSDK.Id
 				void HandleTokenRetrieved (TokenResponse response)
 				{
 					Instance._refreshToken = response.refresh_token;
-					Instance._accessToken = response.access_token;
+					Instance._oauthAccessToken = response.access_token;
 					handleSuccess.Invoke(response);
 				}
 			}
 			else
 			{
 				var errorMessage = "GameSwift ID cannot read cmdline arguments. " +
-				                   $"Authorization code: {isCodeAvailable}. " +
 				                   $"Client id: {isClientIdAvailable}. " +
 				                   $"Redirect uri: {isRedirectUriAvailable}.";
 

@@ -23,9 +23,9 @@ namespace GameSwiftSDK.Id
 
 			if (isCodeAvailable && isClientIdAvailable && isRedirectUriAvailable)
 			{
-				RetrieveOauthToken(authorizationCode, clientId, redirectUri, HandleTokenRetrieved, handleFailure);
+				RetrieveOauthToken(authorizationCode, clientId, redirectUri, HandleOauthTokenRetrieved, handleFailure);
 
-				void HandleTokenRetrieved (TokenResponse response)
+				void HandleOauthTokenRetrieved (TokenResponse response)
 				{
 					Instance._oauthAccessToken = response.access_token;
 					Instance._refreshToken = response.refresh_token;
