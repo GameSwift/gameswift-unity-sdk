@@ -13,6 +13,7 @@ namespace GameSwiftSDK.Id
 
 		private string _loginAccessToken;
 		private string _refreshToken;
+		private string _accessTokenFromLauncher;
 		private bool _accessTokenRetrieved;
 
 		private static GameSwiftSdkId Instance

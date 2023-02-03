@@ -1,6 +1,6 @@
 {
     "name": "com.gameswift.sdk",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "displayName": "GameSwiftSDK",
     "description": "Unity package making it easy to connect with GameSwift ecosystem via GameSwift ID.",
 	"documentationUrl": "https://docs.gameswift.io/gameswift-products/sdk",
