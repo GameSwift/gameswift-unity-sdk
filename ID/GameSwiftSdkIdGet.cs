@@ -27,6 +27,7 @@ namespace GameSwiftSDK.Id
 
 				void HandleTokenRetrieved (TokenResponse response)
 				{
+					Instance._accessTokenFromLauncher = response.access_token;
 					GetOauthUserInformation(response.access_token, handleSuccess, handleFailure);
 				}
 			}
@@ -70,6 +71,30 @@ namespace GameSwiftSDK.Id
 			request.SetupHeaders(CustomHeader.AccessToken, body);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
+		}
+
+		/// <summary>
+		/// Send request <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/oauth/me</a> to GameSwift ID.
+		/// </summary>
+		/// <param name="handleSuccess">Success handler</param>
+		/// <param name="handleFailure">Failure handler</param>
+		public static void GetOauthUserInformation (
+			Action<OauthUserInfoResponse> handleSuccess,
+			Action<BaseSdkFailResponse> handleFailure)
+		{
+			if (string.IsNullOrEmpty(Instance._accessTokenFromLauncher))
+			{
+				var failMessage = "No authorization code cached from launcher, cannot retrieve user info";
+				handleFailure.Invoke(new FailResponse(failMessage));
+			}
+			else
+			{
+				var apiUri = $"{API_ADDRESS}/oauth/me";
+				var request = new RequestData(apiUri);
+				request.SetupHeaders(CustomHeader.AccessToken, Instance._accessTokenFromLauncher);
+
+				GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
+			}
 		}
 
 		/// <summary>
