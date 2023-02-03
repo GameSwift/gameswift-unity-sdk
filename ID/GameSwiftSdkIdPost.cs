@@ -25,7 +25,7 @@ namespace GameSwiftSDK.Id
 
 			if (isCodeAvailable && isClientIdAvailable && isRedirectUriAvailable)
 			{
-				RefreshOauthToken(authorizationCode, clientId, redirectUri, Instance._refreshToken,
+				RefreshOauthToken(clientId, redirectUri, Instance._refreshToken,
 				                  HandleTokenRetrieved, handleFailure);
 
 				void HandleTokenRetrieved (TokenResponse response)
@@ -153,21 +153,18 @@ namespace GameSwiftSDK.Id
 		/// <summary>
 		/// Send request <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/oauth/token</a> to GameSwift ID.
 		/// </summary>
-		/// <param name="authorizationCode">Authorization code which get response request "GET /api/oauth/authorize"</param>
 		/// <param name="clientId">Client id which get response request "GET /api/oauth/client" </param>
 		/// <param name="redirectUri">Redirect uri which get response request "Get /api/oauth/client"</param>
 		/// <param name="refreshToken">Previous refresh token that needs refreshing</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
 		private static void RefreshOauthToken (
-			string authorizationCode, string clientId, string redirectUri, string refreshToken,
+			string clientId, string redirectUri, string refreshToken,
 			Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
 		{
 			var body = System.Web.HttpUtility.ParseQueryString(string.Empty);
 			body.Add("client_id", clientId);
-			body.Add("client_secret", "");
 			body.Add("grant_type", "refresh_token");
-			body.Add("code", authorizationCode);
 			body.Add("redirect_uri", redirectUri);
 			body.Add("refresh_token", refreshToken);
 
