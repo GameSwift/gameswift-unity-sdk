@@ -27,7 +27,8 @@ namespace GameSwiftSDK.Id
 
 				void HandleTokenRetrieved (TokenResponse response)
 				{
-					Instance._accessTokenFromLauncher = response.access_token;
+					Instance._oauthAccessToken = response.access_token;
+					Instance._refreshToken = response.refresh_token;
 					GetOauthUserInformation(response.access_token, handleSuccess, handleFailure);
 				}
 			}
@@ -82,7 +83,7 @@ namespace GameSwiftSDK.Id
 			Action<OauthUserInfoResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
-			if (string.IsNullOrEmpty(Instance._accessTokenFromLauncher))
+			if (string.IsNullOrEmpty(Instance._oauthAccessToken))
 			{
 				var failMessage = "No authorization code cached from launcher, cannot retrieve user info";
 				handleFailure.Invoke(new FailResponse(failMessage));
@@ -91,7 +92,7 @@ namespace GameSwiftSDK.Id
 			{
 				var apiUri = $"{API_ADDRESS}/oauth/me";
 				var request = new RequestData(apiUri);
-				request.SetupHeaders(CustomHeader.AccessToken, Instance._accessTokenFromLauncher);
+				request.SetupHeaders(CustomHeader.AccessToken, Instance._oauthAccessToken);
 
 				GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 			}
@@ -108,7 +109,7 @@ namespace GameSwiftSDK.Id
 		{
 			var apiUri = $"{API_ADDRESS}/auth/me";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.AccessToken, Instance._loginAccessToken);
+			request.SetupHeaders(CustomHeader.AccessToken, Instance._accessToken);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 		}
@@ -125,7 +126,7 @@ namespace GameSwiftSDK.Id
 		{
 			var apiUri = $"{API_ADDRESS}/wallet/{userId}";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.AccessToken, Instance._loginAccessToken);
+			request.SetupHeaders(CustomHeader.AccessToken, Instance._accessToken);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 		}
