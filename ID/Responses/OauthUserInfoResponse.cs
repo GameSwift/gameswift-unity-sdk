@@ -10,6 +10,10 @@ namespace GameSwiftSDK.Id.Responses
         /// </summary>
         public string nickname;
         /// <summary>
+        /// Retrieved email address
+        /// </summary>
+        public string email;
+        /// <summary>
         /// Retrieved access token
         /// </summary>
         public string accessToken;
