@@ -132,24 +132,31 @@ namespace GameSwiftSDK.Core
 
 		private static void HandleRequestFail (Action<BaseSdkFailResponse> handleFailure, string responseText)
 		{
-			try
+			if (string.IsNullOrWhiteSpace(responseText))
 			{
-				var responseData = JsonConvert.DeserializeObject<SdkFailArrayResponse>(responseText);
-				handleFailure.Invoke(responseData);
+				handleFailure.Invoke(new SdkFailResponse("Cannot decode empty response text."));
 			}
-			catch
+			else
 			{
 				try
 				{
-					var responseData = JsonConvert.DeserializeObject<SdkFailResponse>(responseText);
+					var responseData = JsonConvert.DeserializeObject<SdkFailArrayResponse>(responseText);
 					handleFailure.Invoke(responseData);
 				}
-				catch (Exception exception)
+				catch
 				{
-					var errorMessage = $"Cannot decode {responseText}\n{exception.Message}\n{exception.StackTrace}";
-					var failureResponse = new SdkFailResponse(errorMessage);
-					handleFailure.Invoke(failureResponse);
-				}
+					try
+					{
+						var responseData = JsonConvert.DeserializeObject<SdkFailResponse>(responseText);
+						handleFailure.Invoke(responseData);
+					}
+					catch (Exception exception)
+					{
+						var errorMessage = $"Cannot decode {responseText}\n{exception.Message}\n{exception.StackTrace}";
+						var failureResponse = new SdkFailResponse(errorMessage);
+						handleFailure.Invoke(failureResponse);
+					}
+				}	
 			}
 		}
 
