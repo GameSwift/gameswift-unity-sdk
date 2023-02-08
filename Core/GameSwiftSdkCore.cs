@@ -57,7 +57,7 @@ namespace GameSwiftSDK.Core
 			}
 			catch (Exception e)
 			{
-				handleFailure.Invoke(new SdkFailResponse(e.StackTrace));
+				handleFailure.Invoke(new SdkFailResponse($"Cannot start coroutine\n{e.Message}\n{e.StackTrace}"));
 			}
 		}
 
@@ -117,25 +117,39 @@ namespace GameSwiftSDK.Core
 		private static void HandleRequestResult<T> (
 			Action<T> handleSuccess, Action<BaseSdkFailResponse> handleFailure, UnityWebRequest request)
 		{
-			if (request.result != UnityWebRequest.Result.Success)
+			var responseText = request.downloadHandler.text;
+			
+			if (request.result == UnityWebRequest.Result.Success)
 			{
-				BaseSdkFailResponse responseData;
-
-				try
-				{
-					responseData = JsonConvert.DeserializeObject<SdkFailArrayResponse>(request.downloadHandler.text);
-				}
-				catch
-				{
-					responseData = JsonConvert.DeserializeObject<SdkFailResponse>(request.downloadHandler.text);
-				}
-
-				handleFailure.Invoke(responseData);
+				var responseData = JsonConvert.DeserializeObject<T>(responseText);
+				handleSuccess?.Invoke(responseData);
 			}
 			else
 			{
-				var responseData = JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
-				handleSuccess?.Invoke(responseData);
+				HandleRequestFail(handleFailure, responseText);
+			}
+		}
+
+		private static void HandleRequestFail (Action<BaseSdkFailResponse> handleFailure, string responseText)
+		{
+			try
+			{
+				var responseData = JsonConvert.DeserializeObject<SdkFailArrayResponse>(responseText);
+				handleFailure.Invoke(responseData);
+			}
+			catch
+			{
+				try
+				{
+					var responseData = JsonConvert.DeserializeObject<SdkFailResponse>(responseText);
+					handleFailure.Invoke(responseData);
+				}
+				catch (Exception exception)
+				{
+					var errorMessage = $"Cannot decode {responseText}\n{exception.Message}\n{exception.StackTrace}";
+					var failureResponse = new SdkFailResponse(errorMessage);
+					handleFailure.Invoke(failureResponse);
+				}
 			}
 		}
 
