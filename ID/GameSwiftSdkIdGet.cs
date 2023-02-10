@@ -10,11 +10,34 @@ namespace GameSwiftSDK.Id
 	public partial class GameSwiftSdkId
 	{
 		/// <summary>
-		/// Send request to get information login using launcher.
+		/// Send 1 request to get information login using launcher. Reads access_token as cmd arg to call 
 		/// </summary>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void GetUserInformationFromLauncher (
+		public static void ReadUserInfoFromLauncher (
+			Action<OauthUserInfoResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
+		{
+			var isTokenAvailable = GameSwiftSdkCore.TryReadCmdArgument("-access_token", out var accessToken);
+
+			if (isTokenAvailable)
+			{
+				Instance._oauthAccessToken = accessToken;
+				GetOauthUserInformation(accessToken, handleSuccess, handleFailure);
+			}
+			else
+			{
+				var errorMessage = "GameSwift ID cannot read cmdline arguments. Access token was not provided.";
+				handleFailure.Invoke(new SdkFailResponse(errorMessage));
+			}
+		}
+
+		/// <summary>
+		/// Send 2 requests to get user data from launcher. Reads 3 cmd arguments and calls /api/oauth/token
+		/// and then (after caching access and refresh token) /api/oauth/me.
+		/// </summary>
+		/// <param name="handleSuccess">Success handler</param>
+		/// <param name="handleFailure">Failure handler</param>
+		public static void ReadTokenAndUserInfoFromLauncher (
 			Action<OauthUserInfoResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
 		{
 			var isCodeAvailable = GameSwiftSdkCore.TryReadCmdArgument("-authorization_code", out var authorizationCode);
@@ -60,16 +83,16 @@ namespace GameSwiftSDK.Id
 		/// <summary>
 		/// Send request <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/oauth/me</a> to GameSwift ID.
 		/// </summary>
-		/// <param name="body">Access Token</param>
+		/// <param name="accessToken">Access Token</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
 		public static void GetOauthUserInformation (
-			string body, Action<OauthUserInfoResponse> handleSuccess,
+			string accessToken, Action<OauthUserInfoResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
 			var apiUri = $"{API_ADDRESS}/oauth/me";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.AccessToken, body);
+			request.SetupHeaders(CustomHeader.AccessToken, accessToken);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 		}
