@@ -21,7 +21,7 @@ namespace GameSwiftSDK.Id
 
 			if (isTokenAvailable)
 			{
-				Instance._oauthAccessToken = accessToken;
+				Instance.OauthAccessToken = accessToken;
 				GetOauthUserInformation(accessToken, handleSuccess, handleFailure);
 			}
 			else
@@ -50,8 +50,8 @@ namespace GameSwiftSDK.Id
 
 				void HandleOauthTokenRetrieved (TokenResponse response)
 				{
-					Instance._oauthAccessToken = response.access_token;
-					Instance._refreshToken = response.refresh_token;
+					Instance.OauthAccessToken = response.access_token;
+					Instance.RefreshToken = response.refresh_token;
 					GetOauthUserInformation(response.access_token, handleSuccess, handleFailure);
 				}
 			}
@@ -106,7 +106,7 @@ namespace GameSwiftSDK.Id
 			Action<OauthUserInfoResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
-			if (string.IsNullOrEmpty(Instance._oauthAccessToken))
+			if (string.IsNullOrEmpty(Instance.OauthAccessToken))
 			{
 				var failMessage = "No authorization code cached from launcher, cannot retrieve user info";
 				handleFailure.Invoke(new FailResponse(failMessage));
@@ -115,7 +115,7 @@ namespace GameSwiftSDK.Id
 			{
 				var apiUri = $"{API_ADDRESS}/oauth/me";
 				var request = new RequestData(apiUri);
-				request.SetupHeaders(CustomHeader.AccessToken, Instance._oauthAccessToken);
+				request.SetupHeaders(CustomHeader.AccessToken, Instance.OauthAccessToken);
 
 				GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 			}
@@ -132,7 +132,7 @@ namespace GameSwiftSDK.Id
 		{
 			var apiUri = $"{API_ADDRESS}/auth/me";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.AccessToken, Instance._accessToken);
+			request.SetupHeaders(CustomHeader.AccessToken, Instance.AccessToken);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 		}
@@ -149,7 +149,7 @@ namespace GameSwiftSDK.Id
 		{
 			var apiUri = $"{API_ADDRESS}/wallet/{userId}";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.AccessToken, Instance._accessToken);
+			request.SetupHeaders(CustomHeader.AccessToken, Instance.AccessToken);
 
 			GameSwiftSdkCore.SendGetRequest(request, handleSuccess, handleFailure);
 		}

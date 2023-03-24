@@ -24,13 +24,13 @@ namespace GameSwiftSDK.Id
 
 			if (isClientIdAvailable && isRedirectUriAvailable)
 			{
-				RefreshOauthToken(clientId, redirectUri, Instance._refreshToken,
+				RefreshOauthToken(clientId, redirectUri, Instance.RefreshToken,
 				                  HandleTokenRetrieved, handleFailure);
 
 				void HandleTokenRetrieved (TokenResponse response)
 				{
-					Instance._refreshToken = response.refresh_token;
-					Instance._oauthAccessToken = response.access_token;
+					Instance.RefreshToken = response.refresh_token;
+					Instance.OauthAccessToken = response.access_token;
 					handleSuccess.Invoke(response);
 				}
 			}
@@ -71,9 +71,9 @@ namespace GameSwiftSDK.Id
 
 			void HandleSuccessInternal (LoginResponse loginResponse)
 			{
-				Instance._accessToken = loginResponse.accessToken;
+				Instance.AccessToken = loginResponse.accessToken;
 				Instance._accessTokenRetrieved = true;
-				Instance._refreshToken = loginResponse.refreshToken;
+				Instance.RefreshToken = loginResponse.refreshToken;
 				handleSuccess.Invoke(loginResponse);
 			}
 		}
@@ -92,7 +92,7 @@ namespace GameSwiftSDK.Id
 			{
 				var apiUri = $"{API_ADDRESS}/auth/logout";
 				var request = new RequestData(apiUri, body);
-				request.SetupHeaders(CustomHeader.AccessToken, Instance._accessToken);
+				request.SetupHeaders(CustomHeader.AccessToken, Instance.AccessToken);
 
 				GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
 				Instance._accessTokenRetrieved = false;
@@ -111,13 +111,13 @@ namespace GameSwiftSDK.Id
 		/// </summary>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void RefreshToken (
+		public static void RefreshApiToken (
 			Action<MessageResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
 			var apiUri = $"{API_ADDRESS}/auth/refresh";
 			var request = new RequestData(apiUri);
-			request.SetupHeaders(CustomHeader.RefreshToken, Instance._refreshToken);
+			request.SetupHeaders(CustomHeader.RefreshToken, Instance.RefreshToken);
 
 			GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
 		}
