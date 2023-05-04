@@ -16,7 +16,7 @@ namespace GameSwiftSDK.Id
 		public string RefreshToken { get; private set; }
 		private bool _accessTokenRetrieved;
 
-		private static GameSwiftSdkId Instance
+		public static GameSwiftSdkId Instance
 		{
 			get
 			{
