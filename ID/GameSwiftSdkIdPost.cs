@@ -7,91 +7,125 @@ using Newtonsoft.Json;
 namespace GameSwiftSDK.Id
 {
 	/// <summary>
-	/// Setup and send requests to GameSwift ID.
+	/// Setup and send requests to <a href="https://id.gameswift.io/swagger">GameSwift ID</a>.
 	/// </summary>
 	public partial class GameSwiftSdkId
 	{
 		/// <summary>
-		/// Send request to get information login using launcher.
+		/// Logins to GameSwift ID. It's response contains an Access Token needed and used ONLY in
+		/// a <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getAuthorize">GET /api/{idVersion}/oauth/authorize</a> request.
+		/// This method doesn't include further authorization steps so they need to be executed manually to retrieve and store Access and Refresh Tokens.
+		/// If there is no need of a specific login treatment use "LoginAndAuthorize" method instead.
+		/// Sends a <a href="https://id.gameswift.io/swagger/#/default/AuthController_login">POST /api/{idVersion}/auth/login</a> request.
 		/// </summary>
+		/// <param name="emailOrNickname">User's email or nickname</param>
+		/// <param name="password">User's password</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void RefreshTokenFromLauncher (
-			Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
-		{
-			var isClientIdAvailable = GameSwiftSdkCore.TryReadCmdArgument("-client_id", out var clientId);
-			var isRedirectUriAvailable = GameSwiftSdkCore.TryReadCmdArgument("-redirect_uri", out var redirectUri);
-
-			if (isClientIdAvailable && isRedirectUriAvailable)
-			{
-				RefreshOauthToken(clientId, redirectUri, Instance.RefreshToken,
-				                  HandleTokenRetrieved, handleFailure);
-
-				void HandleTokenRetrieved (TokenResponse response)
-				{
-					Instance.RefreshToken = response.refresh_token;
-					Instance.OauthAccessToken = response.access_token;
-					handleSuccess.Invoke(response);
-				}
-			}
-			else
-			{
-				var errorMessage = "GameSwift ID cannot read cmdline arguments. " +
-				                   $"Client id: {isClientIdAvailable}. " +
-				                   $"Redirect uri: {isRedirectUriAvailable}.";
-
-				handleFailure.Invoke(new SdkFailResponse(errorMessage));
-			}
-		}
-
-		/// <summary>
-		/// Send command <a href="https://id.gameswift.io/swagger/#/default/AuthController_login">POST /api/auth/login</a> to GameSwift ID.
-		/// </summary>
-		/// <param name="emailOrNickname">Email or nickname to login</param>
-		/// <param name="password">Login's password</param>
-		/// <param name="handleSuccess">Success handler</param>
-		/// <param name="handleFailure">Failure handler</param>
-		public static void Login (
-			string emailOrNickname, string password, Action<LoginResponse> handleSuccess,
+		public static void Login (string emailOrNickname, string password, Action<LoginResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
 			Dictionary<string, string> credentials = new Dictionary<string, string>()
-			                                         {
-				                                         { "emailOrNickname", emailOrNickname },
-				                                         { "password", password }
-			                                         };
+			{
+				{ "emailOrNickname", emailOrNickname },
+				{ "password", password }
+			};
+			var requestBody = JsonConvert.SerializeObject(credentials, Formatting.Indented);
 
 			var apiUri = $"{API_ADDRESS}/auth/login";
-
-			var requestBody = JsonConvert.SerializeObject(credentials, Formatting.Indented);
 			var request = new RequestData(apiUri, requestBody);
 			request.SetupHeaders(CustomHeader.None, "");
 
-			GameSwiftSdkCore.SendPostRequest<LoginResponse>(request, HandleSuccessInternal, handleFailure);
+			GameSwiftSdkCore.SendPostRequest<LoginResponse>(request, HandleLoginSuccess, handleFailure);
 
-			void HandleSuccessInternal (LoginResponse loginResponse)
+			void HandleLoginSuccess (LoginResponse loginResponse)
 			{
-				Instance.AccessToken = loginResponse.accessToken;
-				Instance._accessTokenRetrieved = true;
-				Instance.RefreshToken = loginResponse.refreshToken;
 				handleSuccess.Invoke(loginResponse);
 			}
 		}
 
 		/// <summary>
-		/// Send request <a href="https://id.gameswift.io/swagger/#/default/AuthController_logout">POST /api/auth/logout</a> to GameSwift ID.
+		/// Logins to GameSwift ID and authorizes the user. Stores Access Token and Refresh Token in the GameSwiftSdkId.Instance.
+		/// To achieve that multiple requests are sent in sequence:
+		/// 1. <a href="https://id.gameswift.io/swagger/#/default/AuthController_login">POST /api/{idVersion}/auth/login</a>
+		/// 2. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getAuthorize">GET /api/{idVersion}/oauth/authorize</a>
+		/// 3. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a>
+		/// 4. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/{idVersion}/oauth/me</a>
 		/// </summary>
-		/// <param name="body">Request body to send</param>
+		/// <param name="emailOrNickname">User's email or nickname</param>
+		/// <param name="password">User's password</param>
+		/// <param name="clientId">OAuth client ID received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="redirectUri">Redirect uri received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void Logout (
-			string body, Action<MessageResponse> handleSuccess,
+		public static void LoginAndAuthorize (string emailOrNickname, string password, string clientId, string redirectUri,
+			Action<OauthUserInfoResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
+		{
+			Login(emailOrNickname, password, HandleLoginSuccess, handleFailure);
+
+			void HandleLoginSuccess (LoginResponse response)
+			{
+				Authorize(response.accessToken, clientId, redirectUri, handleSuccess, handleFailure);
+			}
+		}
+
+		/// <summary>
+		/// Authorizes the user. Stores Access Token and Refresh Token in the GameSwiftSdkId.Instance.
+		/// To achieve that multiple requests are sent in sequence:
+		/// 1. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getAuthorize">GET /api/{idVersion}/oauth/authorize</a>
+		/// 2. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a>
+		/// 3. <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/{idVersion}/oauth/me</a>
+		/// </summary>
+		/// <param name="accessToken">Access Token retrieved from a <a href="https://id.gameswift.io/swagger/#/default/AuthController_login">POST /api/{idVersion}/auth/login</a> request
+		/// or a Cmd Access Token stored in the GameSwiftSdkId.Instance after a successful "ReadUserInfoFromLauncher" method execution (in case of logging in from the launcher)</param>
+		/// <param name="clientId">OAuth client ID received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="redirectUri">Redirect uri received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="handleSuccess">Success handler</param>
+		/// <param name="handleFailure">Failure handler</param>
+		public static void Authorize (string accessToken, string clientId, string redirectUri,
+			Action<OauthUserInfoResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
+		{
+			GetAuthorizationCode(accessToken, clientId, redirectUri, HandleAuthorizationSuccess, handleFailure);
+
+			void HandleAuthorizationSuccess (AuthorizeResponse response)
+			{
+				RetrieveOauthToken(response.code, clientId, redirectUri, HandleRequestTokenSuccess, handleFailure);
+			}
+
+			void HandleRequestTokenSuccess (TokenResponse response)
+			{
+				GetOauthUserInformation(response.accessToken, HandleOAuthMeSuccess, handleFailure);
+
+				void HandleOAuthMeSuccess (OauthUserInfoResponse oauthMeResponse)
+				{
+					Instance.AccessToken = response.accessToken;
+					Instance.RefreshToken = response.refreshToken;
+					Instance._accessTokenRetrieved = true;
+					handleSuccess.Invoke(oauthMeResponse);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Logouts from currently logged in account.
+		/// Sends a <a href="https://id.gameswift.io/swagger/#/default/AuthController_logout">POST /api/{idVersion}/auth/logout</a> request.
+		/// </summary>
+		/// <param name="email">Email address of the account to log out</param>
+		/// <param name="handleSuccess">Success handler</param>
+		/// <param name="handleFailure">Failure handler</param>
+		public static void Logout (string email, Action<MessageResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
 			if (Instance._accessTokenRetrieved)
 			{
+				Dictionary<string, string> credentials = new Dictionary<string, string>()
+				{
+					{ "email", email }
+				};
+				var requestBody = JsonConvert.SerializeObject(credentials, Formatting.Indented);
+
 				var apiUri = $"{API_ADDRESS}/auth/logout";
-				var request = new RequestData(apiUri, body);
+				var request = new RequestData(apiUri, requestBody);
 				request.SetupHeaders(CustomHeader.AccessToken, Instance.AccessToken);
 
 				GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
@@ -99,20 +133,18 @@ namespace GameSwiftSDK.Id
 			}
 			else
 			{
-				FailResponse response =
-					new FailResponse("Cannot use logout endpoint without retrieving access token from login!");
-
-				handleFailure.Invoke(response);
+				var failMessage = "Cannot use logout endpoint without retrieving access token from login!";
+				handleFailure.Invoke(new SdkFailResponse(failMessage));
 			}
 		}
 
 		/// <summary>
-		/// Send request <a href="https://id.gameswift.io/swagger/#/default/AuthController_postRefresh">POST /api/auth/refresh</a> to GameSwift ID.
+		/// Refreshes current token.
+		/// Sends a <a href="https://id.gameswift.io/swagger/#/default/AuthController_postRefresh">POST /api/{idVersion}/auth/refresh</a> request.
 		/// </summary>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void RefreshApiToken (
-			Action<MessageResponse> handleSuccess,
+		public static void RefreshApiToken (Action<MessageResponse> handleSuccess,
 			Action<BaseSdkFailResponse> handleFailure)
 		{
 			var apiUri = $"{API_ADDRESS}/auth/refresh";
@@ -123,52 +155,60 @@ namespace GameSwiftSDK.Id
 		}
 
 		/// <summary>
-		/// Send request <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/oauth/token</a> to GameSwift ID.
-		/// The generated authorization code can only used once
+		/// Retrieves access and refresh tokens with a use of authorization code.
+		/// Sends a <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a> request.
 		/// </summary>
-		/// <param name="authorizationCode">Authorization code which get response request "GET /api/oauth/authorize"</param>
-		/// <param name="clientId">Client id which get response request "GET /api/oauth/client" </param>
-		/// <param name="redirectUri">Redirect uri which get response request "Get /api/oauth/client"</param>
+		/// <param name="authorizationCode">Authorization code received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getAuthorize">GET /api/{idVersion}/oauth/authorize</a> request</param>
+		/// <param name="clientId">OAuth client ID received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="redirectUri">Redirect uri received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		public static void RetrieveOauthToken (
-			string authorizationCode, string clientId, string redirectUri, Action<TokenResponse> handleSuccess,
-			Action<BaseSdkFailResponse> handleFailure)
+		public static void RetrieveOauthToken (string authorizationCode, string clientId, string redirectUri,
+			Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
 		{
-			var body = System.Web.HttpUtility.ParseQueryString(string.Empty);
-			body.Add("client_id", clientId);
-			body.Add("client_secret", "");
-			body.Add("grant_type", "authorization_code");
-			body.Add("code", authorizationCode);
-			body.Add("redirect_uri", redirectUri);
+			Dictionary<string, string> body = new Dictionary<string, string>()
+			{
+				{ "client_id", clientId },
+				{ "client_secret", "" },
+				{ "grant_type", "authorization_code" },
+				{ "code", authorizationCode },
+				{ "redirect_uri", redirectUri }
+			};
+			var queryString = GameSwiftSdkCore.GetParsedQueryString(body);
 
 			var apiUri = $"{API_ADDRESS}/oauth/token";
-			var request = new RequestData(apiUri, body.ToString());
+			var request = new RequestData(apiUri, queryString);
 			request.SetupHeaders(CustomHeader.WwwContentType, "");
+
 			GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
 		}
 
 		/// <summary>
-		/// Send request <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/oauth/token</a> to GameSwift ID.
+		/// Retrieves access and refresh tokens with a use of refresh token.
+		/// Sends a <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a> request.
 		/// </summary>
-		/// <param name="clientId">Client id which get response request "GET /api/oauth/client" </param>
-		/// <param name="redirectUri">Redirect uri which get response request "Get /api/oauth/client"</param>
-		/// <param name="refreshToken">Previous refresh token that needs refreshing</param>
+		/// <param name="clientId">OAuth client ID received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="redirectUri">Redirect uri received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postClient">POST /api/{idVersion}/oauth/client</a> request</param>
+		/// <param name="refreshToken">Refresh token received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a> request.
+		/// If the user is correctly logged in and authorized with /oauth/token it should be already stored in GameSwiftSdkId.Instance.RefreshToken</param>
 		/// <param name="handleSuccess">Success handler</param>
 		/// <param name="handleFailure">Failure handler</param>
-		private static void RefreshOauthToken (
-			string clientId, string redirectUri, string refreshToken,
+		private static void RefreshOauthToken (string clientId, string redirectUri, string refreshToken,
 			Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
 		{
-			var body = System.Web.HttpUtility.ParseQueryString(string.Empty);
-			body.Add("client_id", clientId);
-			body.Add("grant_type", "refresh_token");
-			body.Add("redirect_uri", redirectUri);
-			body.Add("refresh_token", refreshToken);
+			Dictionary<string, string> body = new Dictionary<string, string>()
+			{
+				{ "client_id", clientId },
+				{ "grant_type", "refresh_token" },
+				{ "redirect_uri", redirectUri },
+				{ "refresh_token", refreshToken }
+			};
+			var queryString = GameSwiftSdkCore.GetParsedQueryString(body);
 
 			var apiUri = $"{API_ADDRESS}/oauth/token";
-			var request = new RequestData(apiUri, body.ToString());
+			var request = new RequestData(apiUri, queryString);
 			request.SetupHeaders(CustomHeader.WwwContentType, "");
+
 			GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
 		}
 	}

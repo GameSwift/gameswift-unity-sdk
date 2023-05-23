@@ -1,70 +1,81 @@
 ﻿using System.Collections.Generic;
-using GameSwiftSDK.Core;
 
-/// <summary>
-/// Helper for setting up request data.
-/// </summary>
-public class RequestData
+namespace GameSwiftSDK.Core
 {
-    /// <summary>
-    /// The link to send request
-    /// </summary>
-    public readonly string uri;
-    /// <summary>
-    /// The sent body to request
-    /// </summary>
-    public readonly string body;
+	/// <summary>
+	/// Helper class for setting up request data.
+	/// </summary>
+	public class RequestData
+	{
+		/// <summary>
+		/// Request's url.
+		/// </summary>
+		public readonly string uri;
 
-    public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
+		/// <summary>
+		/// Request's body.
+		/// </summary>
+		public readonly string body;
 
-    /// <summary>Constructor for response data</summary>
-    /// <param name="uri">Url for request</param>
-    /// <param name="body">The sent body to request</param>
-    public RequestData(string uri, string body)
-    {
-        this.uri = uri;
-        this.body = body;
-    }
+		/// <summary>
+		/// Request's headers.
+		/// </summary>
+		public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
 
-    /// <summary>Constructor for response data</summary>
-    /// <param name="requestUri">Url for request</param>
-    public RequestData (string requestUri)
-    {
-        uri = requestUri;
-    }
+		/// <summary>
+		/// Constructor for response data.
+		/// </summary>
+		/// <param name="uri">Request's url</param>
+		/// <param name="body">Request's body</param>
+		public RequestData (string uri, string body)
+		{
+			this.uri = uri;
+			this.body = body;
+		}
 
-    /// <summary>
-    /// Add headers to dictionary
-    /// </summary>
-    /// <param name="customHeader">Type custom header</param>
-    /// <param name="customHeaderText">Value custom header</param>
-    public void SetupHeaders(CustomHeader customHeader, string customHeaderText)
-    {
-        Headers.Add("Content-Type", "application/json");
-        Headers.Add("accept", "*/*");
-        AddCustomHeader(customHeader, customHeaderText);
-    }
+		/// <summary>
+		/// Constructor for the response data.
+		/// </summary>
+		/// <param name="requestUri">Request's uri</param>
+		public RequestData (string requestUri)
+		{
+			uri = requestUri;
+			body = "";
+		}
 
-    /// <summary>
-    /// Add custom header to dictionary
-    /// </summary>
-    /// <param name="customHeader">Type custom header</param>
-    /// <param name="customHeaderText">Value custom header</param>
-    private void AddCustomHeader(CustomHeader customHeader, string customHeaderText)
-    {
-        customHeaderText = string.IsNullOrEmpty(customHeaderText) ? string.Empty : customHeaderText;
-        
-        switch (customHeader)
-        {
-            case CustomHeader.AccessToken:
-                Headers.Add("Authorization", $"Bearer {customHeaderText}");
-                break;
-            case CustomHeader.RefreshToken:
-                Headers.Add("x-refresh-token", customHeaderText);
-                break;
-            case CustomHeader.WwwContentType:
-                Headers["Content-Type"] = "application/x-www-form-urlencoded";
-                break;
-        }
-    }
+		/// <summary>
+		/// Setups request's headers.
+		/// </summary>
+		/// <param name="customHeader">Type of the custom header</param>
+		/// <param name="customHeaderText">Value of the custom header</param>
+		public void SetupHeaders (CustomHeader customHeader, string customHeaderText)
+		{
+			Headers.Add("Content-Type", "application/json");
+			Headers.Add("accept", "*/*");
+			AddCustomHeader(customHeader, customHeaderText);
+		}
+
+		/// <summary>
+		/// Adds custom headers to the Headers dictionary.
+		/// </summary>
+		/// <param name="customHeader">Type of the custom header</param>
+		/// <param name="customHeaderText">Value of the custom header</param>
+		private void AddCustomHeader (CustomHeader customHeader, string customHeaderText)
+		{
+			customHeaderText = string.IsNullOrEmpty(customHeaderText) ? string.Empty : customHeaderText;
+
+			switch (customHeader)
+			{
+				case CustomHeader.AccessToken:
+					Headers.Add("Authorization", $"Bearer {customHeaderText}");
+					break;
+				case CustomHeader.RefreshToken:
+					Headers.Add("x-refresh-token", customHeaderText);
+					break;
+				case CustomHeader.WwwContentType:
+					Headers["Content-Type"] = "application/x-www-form-urlencoded";
+					break;
+			}
+		}
+	}
 }
