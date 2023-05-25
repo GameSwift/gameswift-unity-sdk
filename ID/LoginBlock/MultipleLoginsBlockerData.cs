@@ -64,11 +64,21 @@ namespace GameSwiftSDK.Id.LoginBlock
 
 #if UNITY_EDITOR
 		[InitializeOnLoadMethod]
-		private static void InitializeMultipleLoginsBlockerData()
+		private static void AttachAssetCheckToEditorUpdate ()
 		{
-			if (Instance == null)
+			EditorApplication.update += InitializeMultipleLoginsBlockerData;
+		}
+
+		private static void InitializeMultipleLoginsBlockerData ()
+		{
+			bool isRefreshing = EditorApplication.isCompiling || EditorApplication.isUpdating;
+			if (isRefreshing == false)
 			{
-				Debug.LogWarning($"GameSwift SDK failed to create MultipleLoginsBlockerData.asset config file.");
+				EditorApplication.update -= InitializeMultipleLoginsBlockerData;
+				if (Instance == null)
+				{
+					Debug.LogWarning($"GameSwift SDK failed to create MultipleLoginsBlockerData.asset config file.");
+				}
 			}
 		}
 #endif
