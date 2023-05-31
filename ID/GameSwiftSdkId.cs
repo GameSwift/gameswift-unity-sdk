@@ -8,8 +8,8 @@ namespace GameSwiftSDK.Id
 	/// </summary>
 	public partial class GameSwiftSdkId : MonoBehaviour
 	{
-		private const string ID_VERSION = "";
-		private const string API_ADDRESS = "https://id.gameswift.io/api" + ID_VERSION;
+		private const string ID_VERSION = "1";
+		private const string API_ADDRESS = "https://id.gameswift.io/api/" + ID_VERSION;
 
 		private static GameSwiftSdkId _instance;
 

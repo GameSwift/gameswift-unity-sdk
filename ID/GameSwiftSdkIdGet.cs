@@ -69,7 +69,7 @@ namespace GameSwiftSDK.Id
 		}
 
 		/// <summary>
-		/// Receives logged and authorized user's information. Also maintains multiple account login attempts lock.
+		/// Retrieves logged and authorized user's information. Also maintains multiple account login attempts lock.
 		/// Sends a <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/{idVersion}/oauth/me</a> request.
 		/// </summary>
 		/// <param name="accessToken">Access Token received from <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_postToken">POST /api/{idVersion}/oauth/token</a> request</param>
@@ -87,7 +87,7 @@ namespace GameSwiftSDK.Id
 
 		/// <summary>
 		/// Retrieves logged and authorized user's information. Also maintains multiple account login attempts lock.
-		/// Uses stored Access Token in it's request call.
+		/// Uses Access Token stored in the SDK instance after successful authorization.
 		/// Sends a <a href="https://id.gameswift.io/swagger/#/oauth/OauthController_getMe">GET /api/{idVersion}/oauth/me</a> request.
 		/// </summary>
 		/// <param name="handleSuccess">Success handler</param>
@@ -97,7 +97,7 @@ namespace GameSwiftSDK.Id
 		{
 			if (string.IsNullOrEmpty(Instance.AccessToken))
 			{
-				var failMessage = "No authorization code cached from launcher, cannot retrieve user info";
+				var failMessage = "Access Token is not stored in the SDK instance. Can't retrieve user info.";
 				handleFailure.Invoke(new SdkFailResponse(failMessage));
 			}
 			else

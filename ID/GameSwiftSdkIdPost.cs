@@ -107,38 +107,6 @@ namespace GameSwiftSDK.Id
 		}
 
 		/// <summary>
-		/// Logouts from currently logged in account.
-		/// Sends a <a href="https://id.gameswift.io/swagger/#/default/AuthController_logout">POST /api/{idVersion}/auth/logout</a> request.
-		/// </summary>
-		/// <param name="email">Email address of the account to log out</param>
-		/// <param name="handleSuccess">Success handler</param>
-		/// <param name="handleFailure">Failure handler</param>
-		public static void Logout (string email, Action<MessageResponse> handleSuccess,
-			Action<BaseSdkFailResponse> handleFailure)
-		{
-			if (Instance._accessTokenRetrieved)
-			{
-				Dictionary<string, string> credentials = new Dictionary<string, string>()
-				{
-					{ "email", email }
-				};
-				var requestBody = JsonConvert.SerializeObject(credentials, Formatting.Indented);
-
-				var apiUri = $"{API_ADDRESS}/auth/logout";
-				var request = new RequestData(apiUri, requestBody);
-				request.SetupHeaders(CustomHeader.AccessToken, Instance.AccessToken);
-
-				GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
-				Instance._accessTokenRetrieved = false;
-			}
-			else
-			{
-				var failMessage = "Cannot use logout endpoint without retrieving access token from login!";
-				handleFailure.Invoke(new SdkFailResponse(failMessage));
-			}
-		}
-
-		/// <summary>
 		/// Refreshes current token.
 		/// Sends a <a href="https://id.gameswift.io/swagger/#/default/AuthController_postRefresh">POST /api/{idVersion}/auth/refresh</a> request.
 		/// </summary>
@@ -169,7 +137,6 @@ namespace GameSwiftSDK.Id
 			Dictionary<string, string> body = new Dictionary<string, string>()
 			{
 				{ "client_id", clientId },
-				{ "client_secret", "" },
 				{ "grant_type", "authorization_code" },
 				{ "code", authorizationCode },
 				{ "redirect_uri", redirectUri }

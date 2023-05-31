@@ -13,7 +13,7 @@
 		/// <summary>
 		/// Games assigned to user's wallet.
 		/// </summary>
-		public string[] games;
+		public Game[] games;
 
 		/// <summary>
 		/// Wallet name.
@@ -29,6 +29,22 @@
 		/// Chain where user's wallet is assigned to.
 		/// </summary>
 		public Chain chain;
+
+		/// <summary>
+		/// Games information.
+		/// </summary>
+		public class Game
+		{
+			/// <summary>
+			/// Game's unique ID.
+			/// </summary>
+			public string gameId;
+
+			/// <summary>
+			/// Game types.
+			/// </summary>
+			public string[] types;
+		}
 
 		/// <summary>
 		/// Chain information.
