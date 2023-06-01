@@ -19,8 +19,16 @@ If you are building for mobile or web, you will need to create a login screen an
 4. In the success handler call `GameSwiftSdkId.Authorize` method, which will perform all of the next steps for you automatically. Remember to use stored `GameSwiftSdkId.Instance.CmdAccessToken` here. Also, provide your `clientId` and `redirectUri`. If the process is finished successfully you will be authorized and a new `AccessToken` will be stored in the SDK's `GameSwiftSdkId.Instance.AccessToken` field. From now on you should be using this token in each request.
 
 ```cs
+using GameSwiftSDK.Core;
+using GameSwiftSDK.Id;
+using GameSwiftSDK.Id.Responses;
+using UnityEngine;
+
 public class GameSwiftLauncherLogin : MonoBehaviour
 {
+	private const string CLIENT_ID = "yourClientId";
+	private const string REDIRECT_URI = "yourRedirectUri";
+
 	private void Awake()
 	{
 		if (Application.isEditor == false)
@@ -62,6 +70,13 @@ In order to authorize this way, instead of instructions described in the point 4
 4. If the process is finished successfully you will be logged in, authorized and a new `AccessToken` will be stored in the SDK's `GameSwiftSdkId.Instance.AccessToken` field. From now on you should be using this token in each request.
 
 ```cs
+using GameSwiftSDK.Core;
+using GameSwiftSDK.Id;
+using GameSwiftSDK.Id.Responses;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 public class GameSwiftManualLogin : MonoBehaviour
 {
 	private const string CLIENT_ID = "yourClientId";
@@ -69,21 +84,32 @@ public class GameSwiftManualLogin : MonoBehaviour
 
 	[SerializeField] private TMP_InputField emailOrNickname;
 	[SerializeField] private TMP_InputField password;
+	[SerializeField] private Button loginButton;
 
-	private void Awake()
+	private void OnEnable ()
+	{
+		loginButton.onClick.AddListener(LoginUser);
+	}
+
+	private void LoginUser ()
 	{
 		GameSwiftSdkId.LoginAndAuthorize(emailOrNickname.text, password.text,
 			CLIENT_ID, REDIRECT_URI, HandleSuccess, HandleFailure);
 	}
 
-	private void HandleSuccess(LoginResponse response) 
+	private void HandleSuccess (OauthUserInfoResponse response)
 	{
 		// your code on success login
 	}
 
-	private void HandleFailure(BaseSdkFailResponse response) 
+	private void HandleFailure (BaseSdkFailResponse response)
 	{
 		Debug.LogError($"Login error, code: {response.statusCode}, message: {response.Message}");
+	}
+
+	private void OnDisable ()
+	{
+		loginButton.onClick.RemoveListener(LoginUser);
 	}
 }
 ```
@@ -102,8 +128,6 @@ If you don't use our recommended login approaches, remember to call `GameSwiftSd
 
 # Hello Hero
 Hello Hero is our sample application that shows how your game can be properly integrated with our SDK. In the aplication we can test requests to the `GameSwift ID` and we can see some basic results in the panel `Output`. Feel free to experiment with it!
-
-![Endpoint](GameSwitftSDK/DocsScreenshots/HelloHero.png)
 
 # Contact Us
 **piotr.sobiecki@gameswift.io**
