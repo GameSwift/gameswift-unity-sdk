@@ -1,4 +1,4 @@
-# What is GameSwift SDK?
+# What is GameSwift Unity SDK?
 GameSwift SDK is a Unity toolset created to integrate with GameSwift ID ecosystem. Our SDK is multiplatform - you can build your game for PC, mobile and even browser!
 _Aside from GameSwift SDK, we are preparing GameSwift analytics_.
 
