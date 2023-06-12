@@ -5,7 +5,7 @@ _Aside from GameSwift SDK, we are preparing GameSwift analytics_.
 # Getting started
 In order to integrate your Unity game with GameSwift gaming ecosystem, [import](https://docs.unity3d.com/Manual/upm-ui-giturl.html) our package to your project by providing git url.
 ```
-https://github.com/GameSwift/gameswift-sdk.git
+https://github.com/GameSwift/gameswift-unity-sdk.git
 ```
 
 You can handle GameSwift login in 2 ways: [with launcher](#logging-in-from-launcher) or [without launcher](#logging-in-without-launcher). You can download GameSwift launcher [here](https://launcher.gameswift.io/).
