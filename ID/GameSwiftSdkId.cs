@@ -1,4 +1,4 @@
-﻿using GameSwiftSDK.Id.LoginBlock;
+﻿using GameSwiftSDK.Core;
 using UnityEngine;
 
 namespace GameSwiftSDK.Id
@@ -49,13 +49,15 @@ namespace GameSwiftSDK.Id
 
 		private bool _accessTokenRetrieved;
 
+		[RuntimeInitializeOnLoadMethod]
 		private static void Instantiate ()
 		{
-			_instance = Core.GameSwiftSdkCore.Instance.gameObject.AddComponent<GameSwiftSdkId>();
-
-			if (MultipleLoginsBlockerData.Instance.CheckMultipleLoginAttempts)
+			var parentObject = GameSwiftSdkCore.Instance.gameObject;
+			_instance = parentObject.AddComponent<GameSwiftSdkId>();
+			
+			if (GameSwiftConfig.Instance.CheckMultipleLoginAttempts)
 			{
-				Instance.MultipleLoginsBlocker = Instance.gameObject.AddComponent<MultipleLoginsBlocker>();
+				Instance.MultipleLoginsBlocker = parentObject.AddComponent<MultipleLoginsBlocker>();
 			}
 		}
 	}

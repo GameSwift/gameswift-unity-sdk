@@ -12,6 +12,8 @@ namespace GameSwiftSDK.Core
 	/// </summary>
 	public class GameSwiftSdkCore : MonoBehaviour
 	{
+		public const string GS_AUTH_HEADER = "gs-authentication";
+		
 		private static GameSwiftSdkCore _instance;
 
 		/// <summary>
@@ -23,13 +25,19 @@ namespace GameSwiftSDK.Core
 			{
 				if (_instance == null)
 				{
-					var go = new GameObject("GameSwiftSDKCore");
-					_instance = go.AddComponent<GameSwiftSdkCore>();
-					DontDestroyOnLoad(go);
+					Instantiate();
 				}
 
 				return _instance;
 			}
+		}
+		
+		[RuntimeInitializeOnLoadMethod]
+		private static void Instantiate()
+		{
+			var go = new GameObject("GameSwiftSDKCore");
+			_instance = go.AddComponent<GameSwiftSdkCore>();
+			DontDestroyOnLoad(go);
 		}
 
 		/// <summary>
@@ -100,6 +108,8 @@ namespace GameSwiftSDK.Core
 			{
 				request.SetRequestHeader(header.Key, header.Value);
 			}
+			
+			request.SetRequestHeader(GS_AUTH_HEADER,  GameSwiftConfig.Instance.GetClientAuthenticationSecret());
 		}
 
 		/// <summary>

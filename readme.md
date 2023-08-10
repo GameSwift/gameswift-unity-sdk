@@ -8,6 +8,8 @@ In order to integrate your Unity game with GameSwift gaming ecosystem, [import](
 https://github.com/GameSwift/gameswift-unity-sdk.git
 ```
 
+After successful import, fill `ClientAuthenticationSecret` field in `Assets/Resources/GameSwiftSDK/GameSwiftConfig.asset`. It is a mandatory api authentication token, which is unique for every game using the SDK. These secrets are [distributed by GameSwift](#contact-us).
+
 You can handle GameSwift login in 2 ways: [with launcher](#logging-in-from-launcher) or [without launcher](#logging-in-without-launcher). You can download GameSwift launcher [here](https://launcher.gameswift.io/).
 As long as your game targets Windows or MacOS, we strongly recommend to use data passed from our launcher. By doing so, you won't need to implement any login screen for your game as launcher already handles user credentials in a secure way.
 If you are building for mobile or web, you will need to create a login screen and implement connection with GameSwift backend manually.
@@ -122,7 +124,7 @@ Though we highly recommend using the above method, if you want to implement some
 
 ### Multiple Logins Blocker
 You need to have your client set up to block multiple login attempts for this component to work.
-To configure `Multiple Logins Blocker` you need to edit `MultipleLoginsBlockerData.asset` scriptable object which should be automatically created on Unity asset refresh in the `Assets/Resources/GameSwiftSDK/` directory.
+To configure `Multiple Logins Blocker` you need to edit `GameSwiftConfig.asset` scriptable object which should be automatically created with package import in the `Assets/Resources/GameSwiftSDK/` directory.
 When SDK instance in created this component will start working automatically in the background (if is turned on in the config file). Every specified number of seconds it will be sending hearbeats do the server to keep the lock.
 If you don't use our recommended login approaches, remember to call `GameSwiftSdkId.GetOauthUserInformation` method as the last step of login process. This will be your first sent heartbeat and will initialize the process.
 

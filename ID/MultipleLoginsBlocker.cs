@@ -4,7 +4,7 @@ using GameSwiftSDK.Core;
 using GameSwiftSDK.Id.Responses;
 using UnityEngine;
 
-namespace GameSwiftSDK.Id.LoginBlock
+namespace GameSwiftSDK.Id
 {
 	/// <summary>
 	/// Component used to prevent multiple account login attempts. If multiple logins blocker is turned on this component
@@ -34,7 +34,7 @@ namespace GameSwiftSDK.Id.LoginBlock
 		{
 			for (;;)
 			{
-				yield return new WaitForSeconds(MultipleLoginsBlockerData.Instance.BlockerHeartbeatRate);
+				yield return new WaitForSeconds(GameSwiftConfig.Instance.BlockerHeartbeatRate);
 				SendBlockerHeartbeat();
 			}
 		}
