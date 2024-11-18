@@ -42,13 +42,6 @@ namespace GameSwiftSDK.Id
 		/// </summary>
 		public string AccessToken { get; private set; }
 
-		/// <summary>
-		/// Stored API Refresh Token.
-		/// </summary>
-		public string RefreshToken { get; private set; }
-
-		private bool _accessTokenRetrieved;
-
 		[RuntimeInitializeOnLoadMethod]
 		private static void Instantiate ()
 		{
