@@ -95,6 +95,7 @@ namespace GameSwiftSDK.Id
 
             void HandleRequestTokenSuccess(TokenResponse response)
             {
+                Instance.RefreshToken = response.refreshToken;
                 GetOauthUserInformation(response.accessToken, HandleOAuthMeSuccess, handleFailure);
 
                 void HandleOAuthMeSuccess(OauthUserInfoResponse oauthMeResponse)
@@ -130,7 +131,13 @@ namespace GameSwiftSDK.Id
             var request = new RequestData(apiUri, queryString);
             request.SetupHeaders(CustomHeader.WwwContentType, "");
 
-            GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
+            GameSwiftSdkCore.SendPostRequest<TokenResponse>(request, HandleRefreshTokenSuccess, handleFailure);
+
+            void HandleRefreshTokenSuccess(TokenResponse tokenResponse)
+            {
+                Instance.RefreshToken = tokenResponse.refreshToken;
+                handleSuccess.Invoke(tokenResponse);
+            }
         }
 
         /// <summary>
@@ -143,7 +150,7 @@ namespace GameSwiftSDK.Id
         /// If the user is correctly logged in and authorized with /oauth/token it should be already stored in GameSwiftSdkId.Instance.RefreshToken</param>
         /// <param name="handleSuccess">Success handler</param>
         /// <param name="handleFailure">Failure handler</param>
-        private static void RefreshOauthToken(string clientId, string redirectUri, string refreshToken,
+        public static void RefreshOauthToken(string clientId, string redirectUri, string refreshToken,
             Action<TokenResponse> handleSuccess, Action<BaseSdkFailResponse> handleFailure)
         {
             Dictionary<string, string> body = new Dictionary<string, string>()
@@ -159,7 +166,13 @@ namespace GameSwiftSDK.Id
             var request = new RequestData(apiUri, queryString);
             request.SetupHeaders(CustomHeader.WwwContentType, "");
 
-            GameSwiftSdkCore.SendPostRequest(request, handleSuccess, handleFailure);
+            GameSwiftSdkCore.SendPostRequest<TokenResponse>(request, HandleRefreshTokenSuccess, handleFailure);
+            
+            void HandleRefreshTokenSuccess(TokenResponse tokenResponse)
+            {
+                Instance.RefreshToken = tokenResponse.refreshToken;
+                handleSuccess.Invoke(tokenResponse);
+            }
         }
 
         /// <summary>
